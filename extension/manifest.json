@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "OfficeGit",
+  "version": "1.0",
+  "description": "Upload documents and create versions directly from Chrome.",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "http://localhost:5000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
