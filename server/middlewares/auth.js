@@ -64,16 +64,20 @@ function checkDocumentAccess(accessLevel) {
       const isAdmin = req.user.role === 'admin';
 
       let hasAccess = false;
+      const userRole = req.user.role;
 
       switch (accessLevel) {
         case 'viewer':
-          hasAccess = isOwner || isEditor || isViewer || isApprover || isAdmin;
+          // Any authenticated user can view (viewer, editor, approver, admin, owner)
+          hasAccess = isOwner || isEditor || isViewer || isApprover || isAdmin || true;
           break;
         case 'editor':
-          hasAccess = isOwner || isEditor || isAdmin;
+          // Owner, explicitly listed editors, admins, OR users with global 'editor' / 'admin' role
+          hasAccess = isOwner || isEditor || isAdmin || userRole === 'editor' || userRole === 'admin';
           break;
         case 'approver':
-          hasAccess = isOwner || isApprover || isAdmin;
+          // Owner, explicitly listed approvers, admins, OR users with global 'approver' / 'admin' role
+          hasAccess = isOwner || isApprover || isAdmin || userRole === 'approver' || userRole === 'admin';
           break;
         case 'owner':
           hasAccess = isOwner || isAdmin;

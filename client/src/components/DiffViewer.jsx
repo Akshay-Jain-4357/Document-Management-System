@@ -4,79 +4,100 @@ import { Columns, AlignJustify } from 'lucide-react';
 export default function DiffViewer({ diffData }) {
   const [viewMode, setViewMode] = useState('inline'); // 'inline' | 'split'
 
-  if (!diffData || !diffData.changes) {
-    return <div className="text-center text-slate-400 py-8">No diff data available.</div>;
+  if (!diffData || !diffData.changes || diffData.changes.length === 0) {
+    return (
+      <div className="text-center text-slate-400 py-12 bg-slate-800/30 border border-slate-700/30 rounded-xl">
+        No diff data available.
+      </div>
+    );
   }
 
   const { changes, stats } = diffData;
 
-  const escapeHtml = (str) => {
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  };
-
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-green-400 font-medium">+{stats.additions} additions</span>
-          <span className="text-red-400 font-medium">-{stats.deletions} deletions</span>
-          <span className="text-slate-400">{stats.unchanged} unchanged</span>
+      {/* ── Stats + View Toggle ─────────────────────────────── */}
+      <div className="flex items-center justify-between mb-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700/30">
+        <div className="flex items-center gap-4 text-sm font-medium">
+          <span className="flex items-center gap-1.5 text-green-400">
+            <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
+            +{stats.additions} additions
+          </span>
+          <span className="flex items-center gap-1.5 text-red-400">
+            <span className="w-2 h-2 rounded-full bg-red-400 inline-block"></span>
+            -{stats.deletions} deletions
+          </span>
+          <span className="text-slate-500 text-xs">{stats.unchanged} unchanged</span>
         </div>
+
+        {/* View mode selector */}
         <div className="flex items-center gap-1 bg-slate-700/50 rounded-lg p-0.5">
           <button
             onClick={() => setViewMode('inline')}
-            className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-md transition-colors ${
-              viewMode === 'inline' ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              viewMode === 'inline'
+                ? 'bg-brand-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
-            <AlignJustify className="h-3 w-3" />
+            <AlignJustify className="h-3.5 w-3.5" />
             Inline
           </button>
           <button
             onClick={() => setViewMode('split')}
-            className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-md transition-colors ${
-              viewMode === 'split' ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              viewMode === 'split'
+                ? 'bg-brand-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Columns className="h-3 w-3" />
-            Split
+            <Columns className="h-3.5 w-3.5" />
+            Side by Side
           </button>
         </div>
       </div>
 
-      {/* Diff Content */}
-      <div className="rounded-lg border border-slate-700/30 overflow-hidden">
-        {viewMode === 'inline' ? (
-          <InlineDiff changes={changes} escapeHtml={escapeHtml} />
-        ) : (
-          <SplitDiff changes={changes} escapeHtml={escapeHtml} />
-        )}
+      {/* ── Diff Content ───────────────────────────────────── */}
+      <div className="rounded-xl border border-slate-700/30 overflow-hidden">
+        {viewMode === 'inline'
+          ? <InlineDiff changes={changes} />
+          : <SplitDiff changes={changes} />
+        }
       </div>
     </div>
   );
 }
 
-function InlineDiff({ changes, escapeHtml }) {
+/* ── Inline View ───────────────────────────────────────────── */
+function InlineDiff({ changes }) {
   return (
-    <div className="font-mono text-sm overflow-x-auto">
+    <div className="font-mono text-xs overflow-x-auto">
+      {/* Header */}
+      <div className="grid bg-slate-800/80 border-b border-slate-700/30 text-slate-500 text-[10px] font-semibold uppercase tracking-wide px-2 py-1.5">
+        <div className="grid grid-cols-[48px_48px_24px_1fr]">
+          <span className="text-center">Old</span>
+          <span className="text-center">New</span>
+          <span></span>
+          <span className="pl-2">Content</span>
+        </div>
+      </div>
+
       {changes.map((change, i) => (
-        <div key={i} className={`flex ${getDiffClass(change.type)}`}>
-          <span className="w-12 flex-shrink-0 text-right pr-2 text-slate-500 select-none border-r border-slate-700/50 py-0.5 text-xs">
-            {change.oldLineNumber || ''}
+        <div
+          key={i}
+          className={`grid grid-cols-[48px_48px_24px_1fr] items-stretch ${getLineBg(change.type)}`}
+        >
+          <span className="text-right pr-3 py-0.5 text-slate-600 select-none border-r border-slate-700/20 text-[11px] leading-5">
+            {change.oldLineNumber ?? ''}
           </span>
-          <span className="w-12 flex-shrink-0 text-right pr-2 text-slate-500 select-none border-r border-slate-700/50 py-0.5 text-xs">
-            {change.newLineNumber || ''}
+          <span className="text-right pr-3 py-0.5 text-slate-600 select-none border-r border-slate-700/20 text-[11px] leading-5">
+            {change.newLineNumber ?? ''}
           </span>
-          <span className="w-6 flex-shrink-0 text-center select-none py-0.5 text-xs font-bold">
+          <span className={`text-center py-0.5 font-bold text-[11px] leading-5 select-none ${getLineSymbolColor(change.type)}`}>
             {change.type === 'added' ? '+' : change.type === 'removed' ? '-' : ' '}
           </span>
-          <span className="flex-1 px-2 py-0.5 whitespace-pre-wrap break-all">
-            {escapeHtml(change.value)}
+          <span className="pl-3 py-0.5 whitespace-pre-wrap break-all leading-5 text-[12px]">
+            {change.value}
           </span>
         </div>
       ))}
@@ -84,96 +105,101 @@ function InlineDiff({ changes, escapeHtml }) {
   );
 }
 
-function SplitDiff({ changes, escapeHtml }) {
+/* ── Split View ────────────────────────────────────────────── */
+function SplitDiff({ changes }) {
+  // Build paired left (old) / right (new) lines
   const leftLines = [];
   const rightLines = [];
 
-  let li = 0, ri = 0;
-  while (li < changes.length || ri < changes.length) {
-    const change = changes[li] || changes[ri];
-    if (!change) break;
+  let i = 0;
+  while (i < changes.length) {
+    const c = changes[i];
 
-    if (change.type === 'unchanged') {
-      leftLines.push(change);
-      rightLines.push(change);
-      li++; ri++;
-    } else if (change.type === 'removed') {
-      leftLines.push(change);
-      // Check if next is added (pair them)
-      const next = changes[li + 1];
+    if (c.type === 'unchanged') {
+      leftLines.push(c);
+      rightLines.push(c);
+      i++;
+    } else if (c.type === 'removed') {
+      // Peek ahead — if next line is 'added', pair them
+      const next = changes[i + 1];
       if (next && next.type === 'added') {
+        leftLines.push(c);
         rightLines.push(next);
-        li += 2; ri += 2;
+        i += 2;
       } else {
+        leftLines.push(c);
         rightLines.push({ type: 'empty', value: '' });
-        li++; ri++;
+        i++;
       }
-    } else if (change.type === 'added') {
-      leftLines.push({ type: 'empty', value: '' });
-      rightLines.push(change);
-      li++; ri++;
-    } else {
-      li++; ri++;
-    }
-
-    // Safety
-    if (li > changes.length + 1 && ri > changes.length + 1) break;
-  }
-
-  // Simpler approach: separate removed/added/unchanged
-  const left = [];
-  const right = [];
-  
-  for (const c of changes) {
-    if (c.type === 'removed') {
-      left.push(c);
-      right.push({ type: 'empty', value: '', oldLineNumber: null, newLineNumber: null });
     } else if (c.type === 'added') {
-      left.push({ type: 'empty', value: '', oldLineNumber: null, newLineNumber: null });
-      right.push(c);
+      leftLines.push({ type: 'empty', value: '' });
+      rightLines.push(c);
+      i++;
     } else {
-      left.push(c);
-      right.push(c);
+      i++;
     }
   }
 
   return (
-    <div className="font-mono text-sm flex">
-      <div className="w-1/2 border-r border-slate-700/50 overflow-x-auto">
-        <div className="text-xs font-semibold text-slate-400 px-3 py-2 bg-red-500/10 border-b border-slate-700/50">Old Version</div>
-        {left.map((c, i) => (
-          <div key={i} className={`flex ${getDiffClass(c.type)}`}>
-            <span className="w-10 flex-shrink-0 text-right pr-2 text-slate-500 select-none py-0.5 text-xs">
-              {c.oldLineNumber || ''}
-            </span>
-            <span className="flex-1 px-2 py-0.5 whitespace-pre-wrap break-all min-h-[1.5rem]">
-              {c.type !== 'empty' ? escapeHtml(c.value) : ''}
-            </span>
-          </div>
+    <div className="font-mono text-xs flex divide-x divide-slate-700/30 overflow-x-auto">
+      {/* Left (Old) */}
+      <div className="w-1/2 min-w-0">
+        <div className="bg-red-500/10 border-b border-slate-700/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-red-400/70">
+          Old Version
+        </div>
+        {leftLines.map((c, idx) => (
+          <SplitLine key={idx} change={c} side="left" />
         ))}
       </div>
-      <div className="w-1/2 overflow-x-auto">
-        <div className="text-xs font-semibold text-slate-400 px-3 py-2 bg-green-500/10 border-b border-slate-700/50">New Version</div>
-        {right.map((c, i) => (
-          <div key={i} className={`flex ${getDiffClass(c.type)}`}>
-            <span className="w-10 flex-shrink-0 text-right pr-2 text-slate-500 select-none py-0.5 text-xs">
-              {c.newLineNumber || ''}
-            </span>
-            <span className="flex-1 px-2 py-0.5 whitespace-pre-wrap break-all min-h-[1.5rem]">
-              {c.type !== 'empty' ? escapeHtml(c.value) : ''}
-            </span>
-          </div>
+      {/* Right (New) */}
+      <div className="w-1/2 min-w-0">
+        <div className="bg-green-500/10 border-b border-slate-700/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-green-400/70">
+          New Version
+        </div>
+        {rightLines.map((c, idx) => (
+          <SplitLine key={idx} change={c} side="right" />
         ))}
       </div>
     </div>
   );
 }
 
-function getDiffClass(type) {
+function SplitLine({ change, side }) {
+  const lineNum = side === 'left' ? change.oldLineNumber : change.newLineNumber;
+  if (change.type === 'empty') {
+    return (
+      <div className="flex bg-slate-800/60 min-h-[22px]">
+        <span className="w-10 flex-shrink-0 text-right pr-2 text-slate-700 select-none border-r border-slate-700/20 text-[11px] leading-5 py-0.5">
+        </span>
+        <span className="flex-1 px-2 py-0.5 leading-5" />
+      </div>
+    );
+  }
+  return (
+    <div className={`flex ${getLineBg(change.type)} min-h-[22px]`}>
+      <span className="w-10 flex-shrink-0 text-right pr-2 text-slate-600 select-none border-r border-slate-700/20 text-[11px] leading-5 py-0.5">
+        {lineNum ?? ''}
+      </span>
+      <span className="flex-1 px-2 py-0.5 whitespace-pre-wrap break-all leading-5 text-[12px]">
+        {change.value}
+      </span>
+    </div>
+  );
+}
+
+/* ── Helpers ───────────────────────────────────────────────── */
+function getLineBg(type) {
   switch (type) {
-    case 'added': return 'diff-added bg-green-500/5';
-    case 'removed': return 'diff-removed bg-red-500/5';
-    case 'empty': return 'bg-slate-800/30';
-    default: return 'diff-unchanged';
+    case 'added':   return 'bg-green-500/10 border-l-2 border-green-500';
+    case 'removed': return 'bg-red-500/10 border-l-2 border-red-500';
+    default:        return 'border-l-2 border-transparent';
+  }
+}
+
+function getLineSymbolColor(type) {
+  switch (type) {
+    case 'added':   return 'text-green-400';
+    case 'removed': return 'text-red-400';
+    default:        return 'text-slate-600';
   }
 }

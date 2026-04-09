@@ -13,39 +13,66 @@ const versionRoutes = require('./routes/versions');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security
+// ---------- Security ----------
 app.use(helmet());
+
+// CORS — allow localhost (dev) + Vercel frontend (prod)
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+// If a FRONTEND_URL env var is set (e.g. your Vercel URL), add it
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.some((o) => origin.startsWith(o))) {
+        return callback(null, true);
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
 
-// Rate limiting
+// ---------- Rate Limiting ----------
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });
 app.use('/api/auth', limiter);
 
-// Body parsing
+// ---------- Body Parsing ----------
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/documents', documentRoutes);
-app.use('/api/versions', versionRoutes);
-
-// Health check
+// Health check (Render uses this to know your app is alive)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Global error handler
+// Root route
+app.get('/', (req, res) => {
+  res.json({ message: 'OfficeGit API is running', docs: '/api/health' });
+});
+
+// ---------- API Routes ----------
+app.use('/api/auth', authRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/api/versions', versionRoutes);
+
+// ---------- 404 Handler ----------
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// ---------- Global Error Handler ----------
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
 
@@ -58,6 +85,10 @@ app.use((err, req, res, next) => {
 
   if (err.message === 'Only .txt and .pdf files are allowed') {
     return res.status(400).json({ error: err.message });
+  }
+
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'CORS: Origin not allowed' });
   }
 
   if (err.name === 'CastError') {
@@ -74,11 +105,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
+// ---------- Start Server ----------
 async function start() {
   await connectDB();
   app.listen(PORT, () => {
-    console.log(`🚀 OfficeGit API running on http://localhost:${PORT}`);
+    console.log(`🚀 OfficeGit API running on port ${PORT}`);
+    console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
   });
 }
 
