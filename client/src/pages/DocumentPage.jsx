@@ -9,7 +9,7 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft, Save, RotateCcw, CheckCircle, GitCompare, History,
-  FileText, Shield, Edit3, Eye, X,
+  FileText, Shield, Edit3, Eye, X, ChevronRight,
 } from 'lucide-react';
 
 export default function DocumentPage() {
@@ -199,57 +199,68 @@ export default function DocumentPage() {
 
   const getActionColor = (action) => {
     const map = {
-      CREATE: 'text-green-400 bg-green-500/10',
-      EDIT: 'text-blue-400 bg-blue-500/10',
-      ROLLBACK: 'text-amber-400 bg-amber-500/10',
-      APPROVE: 'text-purple-400 bg-purple-500/10',
-      ACCESS_CHANGE: 'text-cyan-400 bg-cyan-500/10',
+      CREATE: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
+      EDIT: 'text-blue-700 bg-blue-50 border border-blue-200',
+      ROLLBACK: 'text-amber-700 bg-amber-50 border border-amber-200',
+      APPROVE: 'text-purple-700 bg-purple-50 border border-purple-200',
+      ACCESS_CHANGE: 'text-cyan-700 bg-cyan-50 border border-cyan-200',
     };
-    return map[action] || 'text-slate-400 bg-slate-500/10';
+    return map[action] || 'text-gray-600 bg-gray-50 border border-gray-200';
   };
 
   if (!currentDocument) {
     return (
-      <div className="min-h-screen bg-brand-950 flex flex-col">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
         <Navbar />
         <div className="flex-1 flex justify-center items-center">
-          <div className="animate-spin h-8 w-8 border-2 border-brand-400/30 border-t-brand-400 rounded-full" />
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin h-8 w-8 border-2 border-brand-200 border-t-brand-600 rounded-full" />
+            <span className="text-sm text-gray-400">Loading document...</span>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-brand-950">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
 
       {/* ── Top Bar ────────────────────────────────────────────── */}
-      <div className="bg-slate-800/40 border-b border-slate-700/30 sticky top-16 z-40">
+      <div className="bg-white border-b border-gray-200 sticky top-[60px] z-40 shadow-nav">
         <div className="max-w-[1600px] mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            {/* Title */}
-            <div className="flex items-center gap-3 min-w-0">
+            {/* Breadcrumb + Title */}
+            <div className="flex items-center gap-2 min-w-0">
               <button
                 onClick={() => navigate('/')}
-                className="p-1.5 hover:bg-slate-700/50 rounded-lg transition-colors flex-shrink-0"
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                title="Back to documents"
               >
-                <ArrowLeft className="h-5 w-5 text-slate-400" />
+                <ArrowLeft className="h-5 w-5 text-gray-400" />
               </button>
+
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-1.5 text-sm text-gray-400">
+                <span className="hover:text-gray-600 cursor-pointer" onClick={() => navigate('/')}>Documents</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </div>
+
               <div className="min-w-0">
-                <h1 className="text-base font-semibold text-white flex items-center gap-2 truncate">
-                  <FileText className="h-4 w-4 text-brand-400 flex-shrink-0" />
+                <h1 className="text-base font-semibold text-gray-900 flex items-center gap-2 truncate">
+                  <FileText className="h-4 w-4 text-brand-600 flex-shrink-0" />
                   {currentDocument.title}
                 </h1>
-                <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5 flex-wrap">
+                <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5 flex-wrap">
                   <span>by {currentDocument.createdBy?.username}</span>
                   {displayedVersion && (
-                    <span className="text-brand-400 font-medium">
+                    <span className="text-brand-600 font-medium">
                       Viewing v{displayedVersion.versionNumber}
-                      {isLatestVersion && <span className="ml-1 text-green-400">(latest)</span>}
+                      {isLatestVersion && <span className="ml-1 text-emerald-600">(latest)</span>}
                     </span>
                   )}
                   {isDisplayedApproved && (
-                    <span className="flex items-center gap-1 text-green-400">
+                    <span className="flex items-center gap-1 text-emerald-600">
                       <CheckCircle className="h-3 w-3" /> Approved
                     </span>
                   )}
@@ -263,7 +274,7 @@ export default function DocumentPage() {
               {compareSelection.length === 2 && (
                 <button
                   onClick={handleCompare}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-xl transition-all active:scale-[0.98] shadow-sm"
                 >
                   <GitCompare className="h-4 w-4" />
                   Compare Selected
@@ -274,7 +285,7 @@ export default function DocumentPage() {
               {isApprover && displayedVersion && !isDisplayedApproved && (
                 <button
                   onClick={handleApprove}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-xl transition-all active:scale-[0.98] shadow-sm"
                   title={`Approve version v${displayedVersion.versionNumber}`}
                 >
                   <Shield className="h-4 w-4" />
@@ -286,7 +297,7 @@ export default function DocumentPage() {
               {isEditor && displayedVersion && !isLatestVersion && (
                 <button
                   onClick={() => setShowRollbackModal(true)}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-xl transition-all active:scale-[0.98] shadow-sm"
                   title={`Rollback to v${displayedVersion.versionNumber}`}
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -299,27 +310,27 @@ export default function DocumentPage() {
       </div>
 
       {/* ── Main Content ────────────────────────────────────────── */}
-      <div className="max-w-[1600px] mx-auto px-4 py-6">
+      <div className="max-w-[1600px] mx-auto px-4 py-6 page-enter">
         <div className="flex gap-6">
 
           {/* ── SIDEBAR: Version Timeline ──────────────────────── */}
           <div className="w-72 flex-shrink-0">
-            <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl overflow-hidden sticky top-32">
-              <div className="p-3 border-b border-slate-700/30 bg-slate-800/50">
-                <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                  <History className="h-4 w-4 text-brand-400" />
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden sticky top-32 shadow-card">
+              <div className="p-3.5 border-b border-gray-100 bg-gray-50/50">
+                <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <History className="h-4 w-4 text-brand-600" />
                   Version History
-                  <span className="ml-auto text-xs text-slate-500">{versions.length} versions</span>
+                  <span className="ml-auto text-xs text-gray-400 font-normal">{versions.length} versions</span>
                 </h2>
                 {compareSelection.length > 0 && (
-                  <p className="text-[11px] text-purple-400 mt-1.5">
+                  <p className="text-[11px] text-purple-600 mt-1.5 font-medium">
                     {compareSelection.length}/2 selected — {compareSelection.length < 2 ? 'pick one more to compare' : 'ready to compare!'}
                   </p>
                 )}
                 {compareSelection.length > 0 && (
                   <button
                     onClick={() => setCompareSelection([])}
-                    className="text-[11px] text-slate-500 hover:text-red-400 mt-0.5 flex items-center gap-1"
+                    className="text-[11px] text-gray-400 hover:text-red-500 mt-0.5 flex items-center gap-1 transition-colors"
                   >
                     <X className="h-3 w-3" /> Clear selection
                   </button>
@@ -342,11 +353,11 @@ export default function DocumentPage() {
           <div className="flex-1 min-w-0">
 
             {/* Tab Switcher */}
-            <div className="flex items-center gap-1 mb-4 bg-slate-800/30 p-1 rounded-lg border border-slate-700/30 w-fit">
+            <div className="flex items-center gap-0.5 mb-4 bg-gray-100 p-1 rounded-xl w-fit">
               <button
                 onClick={() => setActiveTab('content')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors ${
-                  activeTab === 'content' ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
+                className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-all font-medium ${
+                  activeTab === 'content' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <FileText className="h-4 w-4" />
@@ -354,8 +365,8 @@ export default function DocumentPage() {
               </button>
               <button
                 onClick={() => setActiveTab('audit')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors ${
-                  activeTab === 'audit' ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
+                className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-all font-medium ${
+                  activeTab === 'audit' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <History className="h-4 w-4" />
@@ -378,10 +389,10 @@ export default function DocumentPage() {
                         }
                         setIsEditing(!isEditing);
                       }}
-                      className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all border ${
+                      className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all border ${
                         isEditing
-                          ? 'bg-brand-600 border-brand-500 text-white shadow-lg shadow-brand-900/30'
-                          : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:border-slate-600'
+                          ? 'bg-brand-600 border-brand-600 text-white shadow-sm shadow-brand-200'
+                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
                       }`}
                     >
                       {isEditing
@@ -390,7 +401,7 @@ export default function DocumentPage() {
                     </button>
 
                     {!isLatestVersion && (
-                      <span className="text-xs px-2 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-md">
+                      <span className="text-xs px-2.5 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg font-medium">
                         Viewing v{displayedVersion?.versionNumber} — not the latest
                       </span>
                     )}
@@ -398,17 +409,17 @@ export default function DocumentPage() {
                 )}
 
                 {/* Content Area */}
-                <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl overflow-hidden">
+                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-card">
                   {isEditing ? (
                     <textarea
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full min-h-[520px] p-5 bg-transparent text-slate-200 text-sm font-mono resize-y focus:outline-none leading-relaxed"
+                      className="w-full min-h-[520px] p-5 bg-transparent text-gray-800 text-sm font-mono resize-y focus:outline-none leading-relaxed"
                       placeholder="Enter document content..."
                       autoFocus
                     />
                   ) : (
-                    <pre className="p-5 text-sm text-slate-300 font-mono whitespace-pre-wrap break-words min-h-[520px] leading-relaxed">
+                    <pre className="p-5 text-sm text-gray-700 font-mono whitespace-pre-wrap break-words min-h-[520px] leading-relaxed">
                       {editContent || 'No content.'}
                     </pre>
                   )}
@@ -416,9 +427,9 @@ export default function DocumentPage() {
 
                 {/* Commit Controls — shown in edit mode */}
                 {isEditing && (
-                  <div className="bg-slate-800/50 border border-slate-700/30 rounded-xl p-4">
-                    <p className="text-xs text-slate-400 mb-3">
-                      Committing will create a <span className="text-brand-400 font-medium">new version</span> of this document.
+                  <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+                    <p className="text-xs text-gray-500 mb-3">
+                      Committing will create a <span className="text-brand-600 font-semibold">new version</span> of this document.
                     </p>
                     <div className="flex items-center gap-3">
                       <input
@@ -426,13 +437,13 @@ export default function DocumentPage() {
                         placeholder="Describe your changes (e.g., 'Fixed typo in section 2')"
                         value={commitMessage}
                         onChange={(e) => setCommitMessage(e.target.value)}
-                        className="flex-1 px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                        className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-all"
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) handleSaveVersion(); }}
                       />
                       <button
                         onClick={handleSaveVersion}
                         disabled={saving || !commitMessage.trim()}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors text-sm whitespace-nowrap"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm whitespace-nowrap active:scale-[0.98] shadow-sm"
                       >
                         <Save className="h-4 w-4" />
                         {saving ? 'Saving...' : 'Commit New Version'}
@@ -442,7 +453,7 @@ export default function DocumentPage() {
                           setIsEditing(false);
                           setEditContent(displayedVersion?.content || '');
                         }}
-                        className="p-2.5 text-slate-400 hover:text-red-400 hover:bg-slate-700/50 rounded-lg transition-colors"
+                        className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                         title="Cancel editing"
                       >
                         <X className="h-4 w-4" />
@@ -453,32 +464,32 @@ export default function DocumentPage() {
               </div>
             ) : (
               /* Audit Log Tab */
-              <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl overflow-hidden">
-                <div className="p-3 border-b border-slate-700/30 bg-slate-800/50 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-white">Full Audit Trail</h3>
+              <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-card">
+                <div className="p-3.5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-900">Full Audit Trail</h3>
                   <button
                     onClick={loadAuditLog}
-                    className="text-xs text-brand-400 hover:text-brand-300 transition-colors"
+                    className="text-xs text-brand-600 hover:text-brand-800 font-medium transition-colors"
                   >
                     Refresh
                   </button>
                 </div>
                 {loadingAudit ? (
                   <div className="flex justify-center py-10">
-                    <div className="animate-spin h-6 w-6 border-2 border-brand-400/30 border-t-brand-400 rounded-full" />
+                    <div className="animate-spin h-6 w-6 border-2 border-brand-200 border-t-brand-600 rounded-full" />
                   </div>
                 ) : auditLogs.length === 0 ? (
-                  <div className="text-center py-10 text-slate-400 text-sm">No audit entries yet.</div>
+                  <div className="text-center py-10 text-gray-400 text-sm">No audit entries yet.</div>
                 ) : (
-                  <div className="divide-y divide-slate-700/30">
+                  <div className="divide-y divide-gray-100">
                     {auditLogs.map((log) => (
-                      <div key={log._id} className="flex items-start gap-4 px-4 py-3">
-                        <span className={`px-2 py-0.5 text-xs font-semibold rounded-md flex-shrink-0 mt-0.5 ${getActionColor(log.action)}`}>
+                      <div key={log._id} className="flex items-start gap-4 px-4 py-3.5 hover:bg-gray-50/50 transition-colors">
+                        <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-md flex-shrink-0 mt-0.5 ${getActionColor(log.action)}`}>
                           {log.action}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-slate-300">
-                            <span className="font-medium text-white">{log.performedBy?.username || 'System'}</span>
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium text-gray-900">{log.performedBy?.username || 'System'}</span>
                             {' '}·{' '}
                             {log.action === 'CREATE' && 'Created document'}
                             {log.action === 'EDIT' && `Committed new version`}
@@ -486,11 +497,11 @@ export default function DocumentPage() {
                             {log.action === 'APPROVE' && `Approved version`}
                             {log.action === 'ACCESS_CHANGE' && 'Changed access control'}
                             {log.metadata?.versionNumber && (
-                              <span className="text-brand-400 ml-1">v{log.metadata.versionNumber}</span>
+                              <span className="text-brand-600 ml-1 font-medium">v{log.metadata.versionNumber}</span>
                             )}
                           </p>
                         </div>
-                        <span className="text-xs text-slate-500 flex-shrink-0 mt-0.5">{formatDate(log.createdAt)}</span>
+                        <span className="text-xs text-gray-400 flex-shrink-0 mt-0.5">{formatDate(log.createdAt)}</span>
                       </div>
                     ))}
                   </div>

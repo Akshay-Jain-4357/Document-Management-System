@@ -18,10 +18,26 @@ export default function App() {
             toastOptions={{
               duration: 3000,
               style: {
-                background: '#1e293b',
-                color: '#e2e8f0',
-                border: '1px solid #334155',
+                background: '#ffffff',
+                color: '#0f172a',
+                border: '1px solid #e2e8f0',
                 fontSize: '14px',
+                fontWeight: '500',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                borderRadius: '10px',
+                padding: '12px 16px',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#059669',
+                  secondary: '#ecfdf5',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#dc2626',
+                  secondary: '#fef2f2',
+                },
               },
             }}
           />

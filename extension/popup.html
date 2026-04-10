@@ -5,81 +5,166 @@
   <title>OfficeGit Extension</title>
   <style>
     body {
-      width: 320px;
+      width: 340px;
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #0a0f1a;
-      color: #e2e8f0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
     }
     .header {
-      background-color: #1e293b;
-      padding: 12px 16px;
-      border-bottom: 1px solid #334155;
-      font-weight: bold;
+      background-color: #ffffff;
+      padding: 14px 18px;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 700;
+      font-size: 16px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
     }
-    .header span { color: #60a5fa; }
+    .logo-icon {
+      background: #4f46e5;
+      color: white;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .header span.brand { color: #4f46e5; }
     .content {
-      padding: 16px;
+      padding: 20px;
     }
     .form-group {
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
     label {
       display: block;
-      font-size: 12px;
-      margin-bottom: 4px;
-      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #475569;
     }
     input[type="text"], input[type="password"] {
       width: 100%;
-      padding: 8px;
+      padding: 10px 12px;
       box-sizing: border-box;
-      background: #1e293b;
-      border: 1px solid #475569;
-      color: #fff;
-      border-radius: 4px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+      border-radius: 8px;
+      font-size: 13px;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    input[type="text"]:focus, input[type="password"]:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px #e0e7ff;
+    }
+    input[type="text"]::placeholder, input[type="password"]::placeholder {
+      color: #94a3b8;
+    }
+    
+    /* File Input Styling */
+    .file-input-wrapper {
+      position: relative;
+      border: 2px dashed #cbd5e1;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .file-input-wrapper:hover {
+      border-color: #94a3b8;
+      background: #f1f5f9;
     }
     input[type="file"] {
       width: 100%;
       font-size: 12px;
-      color: #cbd5e1;
+      color: #475569;
     }
+    
     button {
       width: 100%;
-      background: #2563eb;
+      background: #4f46e5;
       color: #fff;
       border: none;
-      padding: 10px;
-      border-radius: 4px;
+      padding: 12px;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 14px;
       margin-top: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
     }
-    button:hover { background: #1d4ed8; }
-    button:disabled { background: #475569; cursor: not-allowed; }
+    button:hover { background: #4338ca; }
+    button:active { transform: scale(0.98); }
+    button:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+    
     #status {
-      margin-top: 12px;
-      font-size: 12px;
+      margin-top: 16px;
+      font-size: 13px;
+      font-weight: 500;
       text-align: center;
+      padding: 8px;
+      border-radius: 6px;
     }
-    .error { color: #ef4444; }
-    .success { color: #22c55e; }
+    .error { color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; }
+    .success { color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; }
     .hidden { display: none; }
+    
+    .view-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .auth-status {
+      font-size: 12px; 
+      margin-bottom: 16px; 
+      color: #64748b; 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .auth-status a {
+      color: #ef4444; 
+      text-decoration: none;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .auth-status a:hover {
+      background: #fef2f2;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <span>🐙</span> OfficeGit
+    <div class="logo-icon">🌿</div>
+    <div>Office<span class="brand">Git</span></div>
   </div>
   
   <div class="content">
     <!-- Unauthenticated View -->
-    <div id="login-view">
+    <div id="login-view" class="view-card">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="margin: 0 0 4px 0; font-size: 18px; color: #0f172a;">Welcome Back</h2>
+        <p style="margin: 0; font-size: 13px; color: #64748b;">Sign in to sync your documents</p>
+      </div>
+      
       <div class="form-group">
-        <label>Email</label>
+        <label>Email Address</label>
         <input type="text" id="email" placeholder="you@example.com">
       </div>
       <div class="form-group">
@@ -90,23 +175,27 @@
     </div>
 
     <!-- Authenticated View -->
-    <div id="upload-view" class="hidden">
-      <div style="font-size: 11px; margin-bottom: 12px; color: #94a3b8; text-align: right;">
-        Logged in • <a href="#" id="logout-link" style="color: #ef4444; text-decoration: none;">Logout</a>
+    <div id="upload-view" class="hidden view-card">
+      <div class="auth-status">
+        <span><span style="display:inline-block; width:8px; height:8px; background:#10b981; border-radius:50%; margin-right:4px;"></span> Connected</span>
+        <a href="#" id="logout-link">Logout</a>
       </div>
+      
       <div class="form-group">
-        <label>File (.txt or .pdf)</label>
-        <input type="file" id="file" accept=".txt,.pdf">
+        <label>File to Upload</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="file" accept=".txt,.pdf,.md,.docx">
+        </div>
       </div>
       <div class="form-group">
         <label>Title (Optional)</label>
-        <input type="text" id="title" placeholder="Document Title">
+        <input type="text" id="title" placeholder="e.g. Q3 Financial Report">
       </div>
       <div class="form-group">
         <label>Commit Message</label>
-        <input type="text" id="message" placeholder="Initial commit">
+        <input type="text" id="message" placeholder="e.g. Initial draft upload">
       </div>
-      <button id="upload-btn">Upload to OfficeGit</button>
+      <button id="upload-btn">Sync to OfficeGit</button>
     </div>
 
     <div id="status"></div>

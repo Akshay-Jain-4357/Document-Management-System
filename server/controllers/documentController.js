@@ -4,6 +4,8 @@ const AuditLog = require('../models/AuditLog');
 const { createInitialVersion, createVersion } = require('../services/versionService');
 const { logAction } = require('../services/auditService');
 const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
+const WordExtractor = require('word-extractor');
 
 /**
  * POST /api/documents — Create a new document with initial content
@@ -44,7 +46,8 @@ exports.createDocument = async (req, res, next) => {
 };
 
 /**
- * POST /api/documents/upload — Upload .txt or .pdf file as a new document
+ * POST /api/documents/upload — Upload file as a new document
+ * Supports: .txt, .pdf, .md, .doc, .docx
  */
 exports.uploadDocument = async (req, res, next) => {
   try {
@@ -55,23 +58,46 @@ exports.uploadDocument = async (req, res, next) => {
     let content = '';
     const ext = req.file.originalname.split('.').pop().toLowerCase();
 
-    if (ext === 'txt') {
+    if (ext === 'txt' || ext === 'md') {
       content = req.file.buffer.toString('utf-8');
     } else if (ext === 'pdf') {
       try {
         const pdfData = await pdfParse(req.file.buffer);
         content = pdfData.text;
       } catch (pdfErr) {
-        return res.status(400).json({ error: 'Failed to parse PDF file' });
+        console.error('PDF parse error:', pdfErr.message);
+        return res.status(400).json({ error: 'Failed to parse PDF. It may be corrupted or password-protected.' });
       }
+    } else if (ext === 'docx') {
+      // .docx — Modern Word format (XML-based)
+      try {
+        const result = await mammoth.extractRawText({ buffer: req.file.buffer });
+        content = result.value;
+      } catch (docxErr) {
+        console.error('DOCX parse error:', docxErr.message);
+        return res.status(400).json({ error: 'Failed to parse .docx file. It may be corrupted.' });
+      }
+    } else if (ext === 'doc') {
+      // .doc — Legacy Word format (binary, Word 97-2003)
+      try {
+        const extractor = new WordExtractor();
+        const doc = await extractor.extract(req.file.buffer);
+        content = doc.getBody();
+      } catch (docErr) {
+        console.error('DOC parse error:', docErr.message);
+        return res.status(400).json({ error: 'Failed to parse .doc file. It may be corrupted.' });
+      }
+    } else {
+      return res.status(400).json({ error: `Unsupported file type: .${ext}` });
     }
 
     if (!content || content.trim().length === 0) {
       return res.status(400).json({ error: 'Uploaded file is empty or unreadable' });
     }
 
-    if (content.length > (parseInt(process.env.MAX_FILE_SIZE) || 1048576)) {
-      return res.status(400).json({ error: 'Extracted content exceeds 1MB limit' });
+    const maxSize = parseInt(process.env.MAX_FILE_SIZE) || 10485760;
+    if (content.length > maxSize) {
+      return res.status(400).json({ error: `Content exceeds ${Math.round(maxSize / 1048576)}MB limit` });
     }
 
     const title = req.body.title || req.file.originalname.replace(/\.[^/.]+$/, '');

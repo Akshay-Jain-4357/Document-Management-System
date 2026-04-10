@@ -35,8 +35,8 @@ const validateCreateDocument = [
   body('title').trim().notEmpty().isLength({ max: 200 }).withMessage('Title required (max 200 chars)'),
   body('content').notEmpty().withMessage('Content is required'),
   body('content')
-    .isLength({ max: 1048576 })
-    .withMessage('Content exceeds 1MB limit'),
+    .isLength({ max: 10485760 })
+    .withMessage('Content exceeds 10MB limit'),
   body('message').optional().trim().isLength({ max: 500 }),
   handleValidation,
 ];
@@ -44,8 +44,8 @@ const validateCreateDocument = [
 const validateCreateVersion = [
   body('content').notEmpty().withMessage('Content is required'),
   body('content')
-    .isLength({ max: 1048576 })
-    .withMessage('Content exceeds 1MB limit'),
+    .isLength({ max: 10485760 })
+    .withMessage('Content exceeds 10MB limit'),
   body('message').trim().notEmpty().isLength({ max: 500 }).withMessage('Commit message required (max 500 chars)'),
   handleValidation,
 ];
@@ -58,15 +58,16 @@ const validateDiffQuery = [
 
 // File upload config
 const storage = multer.memoryStorage();
+const ALLOWED_EXTENSIONS = ['.txt', '.pdf', '.doc', '.docx', '.md'];
 const upload = multer({
   storage,
-  limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE) || 1048576 },
+  limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760 },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    if (ext === '.txt' || ext === '.pdf') {
+    if (ALLOWED_EXTENSIONS.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only .txt and .pdf files are allowed'));
+      cb(new Error(`Only ${ALLOWED_EXTENSIONS.join(', ')} files are allowed`));
     }
   },
 });

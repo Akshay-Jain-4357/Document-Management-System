@@ -20,6 +20,7 @@ app.use(helmet());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://document-management-system-nine-beryl.vercel.app',
 ];
 // If a FRONTEND_URL env var is set (e.g. your Vercel URL), add it
 if (process.env.FRONTEND_URL) {
@@ -78,12 +79,12 @@ app.use((err, req, res, next) => {
 
   if (err.name === 'MulterError') {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ error: 'File size exceeds 1MB limit' });
+      return res.status(400).json({ error: `File size exceeds ${Math.round((parseInt(process.env.MAX_FILE_SIZE) || 10485760) / 1048576)}MB limit` });
     }
     return res.status(400).json({ error: err.message });
   }
 
-  if (err.message === 'Only .txt and .pdf files are allowed') {
+  if (err.message && err.message.includes('files are allowed')) {
     return res.status(400).json({ error: err.message });
   }
 

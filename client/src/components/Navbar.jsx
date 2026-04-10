@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { GitBranch, LogOut, User } from 'lucide-react';
+import { GitBranch, LogOut, User, Bell, Search } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -12,29 +12,49 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-brand-900/80 backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-50">
+    <nav className="bg-white border-b border-gray-200/80 sticky top-0 z-50 shadow-nav">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 text-white font-bold text-xl hover:opacity-90 transition-opacity">
-            <GitBranch className="h-6 w-6 text-brand-400" />
-            <span>OfficeGit</span>
+        <div className="flex items-center justify-between h-[60px]">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="flex items-center justify-center w-8 h-8 bg-brand-600 rounded-lg group-hover:bg-brand-700 transition-colors">
+              <GitBranch className="h-4.5 w-4.5 text-white" />
+            </div>
+            <span className="text-lg font-bold text-gray-900 tracking-tight">
+              Office<span className="text-brand-600">Git</span>
+            </span>
           </Link>
 
           {user && (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-slate-300">
-                <User className="h-4 w-4" />
-                <span>{user.username}</span>
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-600/30 text-brand-300 border border-brand-500/30">
-                  {user.role}
-                </span>
+            <div className="flex items-center gap-3">
+              {/* Notification bell placeholder */}
+              <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="Notifications">
+                <Bell className="h-[18px] w-[18px]" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full border-2 border-white"></span>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-7 bg-gray-200"></div>
+
+              {/* User info */}
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-700 font-semibold text-sm">
+                  {user.username?.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-sm font-medium text-gray-900 leading-tight">{user.username}</p>
+                  <p className="text-[11px] text-gray-500 leading-tight capitalize">{user.role}</p>
+                </div>
               </div>
+
+              {/* Logout */}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1 text-sm text-slate-400 hover:text-red-400 transition-colors"
+                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-all"
+                title="Sign out"
               >
                 <LogOut className="h-4 w-4" />
-                <span>Logout</span>
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           )}

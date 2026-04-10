@@ -1,18 +1,31 @@
 {
   "manifest_version": 3,
   "name": "OfficeGit",
-  "version": "1.0",
-  "description": "Upload documents and create versions directly from Chrome.",
+  "version": "1.0.0",
+  "description": "Upload, browse, and manage your OfficeGit documents directly from Chrome.",
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "notifications"
   ],
   "host_permissions": [
-    "http://localhost:5000/*"
+    "http://localhost:5000/*",
+    "https://*.onrender.com/*"
   ],
+  "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
   }

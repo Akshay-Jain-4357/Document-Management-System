@@ -36,58 +36,61 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-950 px-4">
-      {/* Subtle background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-900/30 via-transparent to-blue-900/20 pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      {/* Subtle background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-brand-100 rounded-full opacity-40 blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full opacity-30 blur-3xl"></div>
+      </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 bg-brand-600/20 border border-brand-500/30 rounded-xl">
-              <GitBranch className="h-8 w-8 text-brand-400" />
+            <div className="p-3 bg-brand-600 rounded-2xl shadow-lg shadow-brand-200">
+              <GitBranch className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white">OfficeGit</h1>
-          <p className="text-slate-400 text-sm mt-1">Version-controlled document management</p>
+          <h1 className="text-3xl font-bold text-gray-900">OfficeGit</h1>
+          <p className="text-gray-500 text-sm mt-1.5">Version-controlled document management</p>
         </div>
 
         {/* Card */}
-        <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 shadow-xl">
-          <h2 className="text-xl font-semibold text-white mb-6">
+        <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-modal">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
             {isRegister ? 'Create Account' : 'Sign In'}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
                   minLength={3}
-                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-all"
                   placeholder="johndoe"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors"
+                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-all"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -95,13 +98,13 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-4 py-2.5 pr-10 bg-slate-900/50 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors"
+                  className="w-full px-4 py-2.5 pr-10 bg-white border border-gray-300 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-all"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -110,11 +113,11 @@ export default function LoginPage() {
 
             {isRegister && (
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Role</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-all"
                 >
                   <option value="editor">Editor</option>
                   <option value="viewer">Viewer</option>
@@ -126,7 +129,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors text-sm mt-2"
+              className="w-full py-3 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all active:scale-[0.98] text-sm mt-2 shadow-sm shadow-brand-200"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -142,7 +145,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <button
               onClick={() => setIsRegister(!isRegister)}
-              className="text-sm text-brand-400 hover:text-brand-300 transition-colors"
+              className="text-sm text-brand-600 hover:text-brand-800 font-medium transition-colors"
             >
               {isRegister ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
             </button>
@@ -150,13 +153,13 @@ export default function LoginPage() {
         </div>
 
         {/* Test accounts hint */}
-        <div className="mt-6 p-4 bg-slate-800/40 border border-slate-700/30 rounded-xl">
-          <p className="text-xs text-slate-500 text-center mb-2">Test accounts (run <code className="text-brand-400">npm run seed</code> first)</p>
-          <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-500">
-            <span>admin@officegit.com</span><span>admin123</span>
-            <span>editor@officegit.com</span><span>editor123</span>
-            <span>viewer@officegit.com</span><span>viewer123</span>
-            <span>approver@officegit.com</span><span>approver123</span>
+        <div className="mt-6 p-4 bg-white border border-gray-200 rounded-xl shadow-card">
+          <p className="text-xs text-gray-400 text-center mb-2">Test accounts (run <code className="text-brand-600 bg-brand-50 px-1 py-0.5 rounded text-[11px]">npm run seed</code> first)</p>
+          <div className="grid grid-cols-2 gap-1 text-[11px] text-gray-500">
+            <span>admin@officegit.com</span><span className="text-gray-400">admin123</span>
+            <span>editor@officegit.com</span><span className="text-gray-400">editor123</span>
+            <span>viewer@officegit.com</span><span className="text-gray-400">viewer123</span>
+            <span>approver@officegit.com</span><span className="text-gray-400">approver123</span>
           </div>
         </div>
       </div>
