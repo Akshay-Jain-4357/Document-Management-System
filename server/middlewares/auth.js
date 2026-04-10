@@ -62,21 +62,19 @@ function checkDocumentAccess(accessLevel) {
       const isViewer = doc.accessControl.viewers.map((v) => v.toString()).includes(userId);
       const isApprover = doc.accessControl.approvers.map((a) => a.toString()).includes(userId);
       const isAdmin = req.user.role === 'admin';
+      const isPublic = doc.visibility === 'public';
 
       let hasAccess = false;
       const userRole = req.user.role;
 
       switch (accessLevel) {
         case 'viewer':
-          // Any authenticated user can view (viewer, editor, approver, admin, owner)
-          hasAccess = isOwner || isEditor || isViewer || isApprover || isAdmin || true;
+          hasAccess = isPublic || isOwner || isEditor || isViewer || isApprover || isAdmin;
           break;
         case 'editor':
-          // Owner, explicitly listed editors, admins, OR users with global 'editor' / 'admin' role
           hasAccess = isOwner || isEditor || isAdmin || userRole === 'editor' || userRole === 'admin';
           break;
         case 'approver':
-          // Owner, explicitly listed approvers, admins, OR users with global 'approver' / 'admin' role
           hasAccess = isOwner || isApprover || isAdmin || userRole === 'approver' || userRole === 'admin';
           break;
         case 'owner':

@@ -9,7 +9,7 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft, Save, RotateCcw, CheckCircle, GitCompare, History,
-  FileText, Shield, Edit3, Eye, X, ChevronRight,
+  FileText, Shield, Edit3, Eye, X, ChevronRight, User as OwnerIcon, Edit2, ShieldCheck, Users
 } from 'lucide-react';
 
 export default function DocumentPage() {
@@ -38,12 +38,20 @@ export default function DocumentPage() {
   const [activeTab, setActiveTab] = useState('content');
   const [auditLogs, setAuditLogs] = useState([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
+  const [insights, setInsights] = useState(null);
 
   // Load document and versions, set initial displayed version to the latest
   const loadDocument = useCallback(async () => {
     try {
       const data = await fetchDocument(id);
       const versionData = await fetchVersions(id);
+
+      try {
+        const insightsRes = await api.get(`/documents/${id}/insights`);
+        setInsights(insightsRes.data);
+      } catch (err) {
+        console.error('Failed to load insights', err);
+      }
 
       // Set the latest (current HEAD) version
       const head = data.currentVersion;
@@ -173,16 +181,31 @@ export default function DocumentPage() {
   const isOwner =
     currentDocument?.accessControl?.owner?._id === user?.id ||
     currentDocument?.accessControl?.owner === user?.id;
+
+  const hasExplicitRole =
+    isOwner ||
+    currentDocument?.accessControl?.editors?.some((e) => (e._id || e) === user?.id) ||
+    currentDocument?.accessControl?.viewers?.some((v) => (v._id || v) === user?.id) ||
+    currentDocument?.accessControl?.approvers?.some((a) => (a._id || a) === user?.id) ||
+    currentDocument?.createdBy?._id === user?.id;
+
+  const isPublicViewer = currentDocument?.visibility === 'public' && !hasExplicitRole && user?.role !== 'admin';
+
   const isEditor =
-    isOwner ||
-    user?.role === 'admin' ||
-    user?.role === 'editor' ||
-    currentDocument?.accessControl?.editors?.some((e) => (e._id || e) === user?.id);
+    !isPublicViewer && (
+      isOwner ||
+      user?.role === 'admin' ||
+      user?.role === 'editor' ||
+      currentDocument?.accessControl?.editors?.some((e) => (e._id || e) === user?.id)
+    );
+    
   const isApprover =
-    isOwner ||
-    user?.role === 'admin' ||
-    user?.role === 'approver' ||
-    currentDocument?.accessControl?.approvers?.some((a) => (a._id || a) === user?.id);
+    !isPublicViewer && (
+      isOwner ||
+      user?.role === 'admin' ||
+      user?.role === 'approver' ||
+      currentDocument?.accessControl?.approvers?.some((a) => (a._id || a) === user?.id)
+    );
 
   // Determine if displayed version is the latest HEAD
   const isLatestVersion =
@@ -253,8 +276,17 @@ export default function DocumentPage() {
                 </h1>
                 <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5 flex-wrap">
                   <span>by {currentDocument.createdBy?.username}</span>
+                  {insights && (
+                     <span className="flex items-center gap-3 border-l border-gray-200 pl-3">
+                       <span title="Owner" className="flex items-center gap-1 font-medium"><OwnerIcon className="h-3 w-3 text-emerald-600" /> {insights.owner}</span>
+                       <span title="Editors" className="flex items-center gap-1 font-medium"><Edit2 className="h-3 w-3 text-blue-600" /> {insights.editors}</span>
+                       <span title="Viewers" className="flex items-center gap-1 font-medium"><Eye className="h-3 w-3 text-purple-600" /> {insights.viewers}</span>
+                       <span title="Approvers" className="flex items-center gap-1 font-medium"><ShieldCheck className="h-3 w-3 text-amber-600" /> {insights.approvers}</span>
+                       <span title="Contributors" className="flex items-center gap-1 text-brand-600 font-medium px-1.5 py-0.5 bg-brand-50 rounded-md"><Users className="h-3 w-3" /> {insights.contributors}</span>
+                     </span>
+                  )}
                   {displayedVersion && (
-                    <span className="text-brand-600 font-medium">
+                    <span className="text-brand-600 font-medium border-l border-gray-200 pl-3">
                       Viewing v{displayedVersion.versionNumber}
                       {isLatestVersion && <span className="ml-1 text-emerald-600">(latest)</span>}
                     </span>

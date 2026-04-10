@@ -54,6 +54,11 @@ const documentSchema = new mongoose.Schema(
       enum: ['text', 'pdf'],
       default: 'text',
     },
+    visibility: {
+      type: String,
+      enum: ['private', 'public'],
+      default: 'private',
+    },
   },
   { timestamps: true }
 );
@@ -64,5 +69,6 @@ documentSchema.index({ 'accessControl.editors': 1 });
 documentSchema.index({ 'accessControl.viewers': 1 });
 documentSchema.index({ 'accessControl.approvers': 1 });
 documentSchema.index({ createdBy: 1 });
+documentSchema.index({ visibility: 1 });
 
 module.exports = mongoose.model('Document', documentSchema);

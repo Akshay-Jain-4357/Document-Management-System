@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import DocumentPage from './pages/DocumentPage';
 import DiffPage from './pages/DiffPage';
+import ExplorePage from './pages/ExplorePage';
 
 export default function App() {
   return (
@@ -43,14 +44,8 @@ export default function App() {
           />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/explore" element={<ProtectedRoute><ExplorePage /></ProtectedRoute>} />
             <Route
               path="/document/:id"
               element={

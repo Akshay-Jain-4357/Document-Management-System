@@ -6,15 +6,16 @@ import Navbar from '../components/Navbar';
 import FileUpload from '../components/FileUpload';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { Plus, FileText, Upload, Clock, User, CheckCircle, X, Search, FolderOpen, GitBranch, Shield } from 'lucide-react';
+import DocumentCard from '../components/DocumentCard';
+import { Plus, FileText, Upload, Clock, User, CheckCircle, X, Search, FolderOpen, GitBranch, Shield, Users } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { documents, pagination, loading, fetchDocuments } = useDocuments();
+  const { myDocuments: documents, loading, fetchMyDocuments: fetchDocuments } = useDocuments();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ title: '', content: '', message: '' });
+  const [createForm, setCreateForm] = useState({ title: '', content: '', message: '', visibility: 'private' });
   const [creating, setCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -34,10 +35,11 @@ export default function DashboardPage() {
         title: createForm.title,
         content: createForm.content,
         message: createForm.message || 'Initial version',
+        visibility: createForm.visibility,
       });
       toast.success('Document created!');
       setShowCreateModal(false);
-      setCreateForm({ title: '', content: '', message: '' });
+      setCreateForm({ title: '', content: '', message: '', visibility: 'private' });
       fetchDocuments();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to create');
@@ -71,7 +73,7 @@ export default function DashboardPage() {
   };
 
   // Stats
-  const totalDocs = pagination.total || 0;
+  const totalDocs = documents.length;
   const approvedDocs = documents.filter(d => d.currentVersionId?.isApproved).length;
   const totalVersions = documents.reduce((sum, d) => sum + (d.versions?.length || 0), 0);
 
@@ -187,76 +189,40 @@ export default function DashboardPage() {
             )}
           </div>
         ) : (
-          <div className="grid gap-3">
-            {filteredDocs.map((doc) => (
-              <div
-                key={doc._id}
-                onClick={() => navigate(`/document/${doc._id}`)}
-                className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-card-hover hover:border-gray-300 cursor-pointer transition-all group shadow-card"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-9 h-9 bg-brand-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-brand-100 transition-colors">
-                        <FileText className="h-4.5 w-4.5 text-brand-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-semibold text-gray-900 group-hover:text-brand-700 transition-colors truncate">
-                          {doc.title}
-                        </h3>
-                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
-                          <span className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            {doc.createdBy?.username || 'Unknown'}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {formatDate(doc.updatedAt)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2.5 flex-shrink-0">
-                    {doc.currentVersionId?.isApproved && (
-                      <span className="flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-medium rounded-md border border-emerald-200">
-                        <CheckCircle className="h-3 w-3" />
-                        Approved
-                      </span>
-                    )}
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-[11px] font-medium rounded-md">
-                      {doc.versions?.length || 0} version{doc.versions?.length !== 1 ? 's' : ''}
-                    </span>
-                    {doc.currentVersionId?.versionNumber && (
-                      <span className="text-[11px] text-gray-400 font-medium">
-                        v{doc.currentVersionId.versionNumber}
-                      </span>
-                    )}
-                  </div>
+          <div className="space-y-8">
+            {/* Owned by Me */}
+            {filteredDocs.filter(d => d.createdBy?._id === user?.id || d.createdBy === user?.id).length > 0 && (
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <User className="h-5 w-5 text-brand-600" />
+                  Owned by Me
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredDocs.filter(d => d.createdBy?._id === user?.id || d.createdBy === user?.id).map((doc) => (
+                    <DocumentCard key={doc.id} doc={doc} isExplore={false} />
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Shared with Me */}
+            {filteredDocs.filter(d => d.createdBy?._id !== user?.id && d.createdBy !== user?.id).length > 0 && (
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-purple-600" />
+                  Shared with Me
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredDocs.filter(d => d.createdBy?._id !== user?.id && d.createdBy !== user?.id).map((doc) => (
+                    <DocumentCard key={doc.id} doc={doc} isExplore={false} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Pagination */}
-        {pagination.pages > 1 && (
-          <div className="flex justify-center gap-2 mt-8">
-            {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => fetchDocuments(p)}
-                className={`px-3.5 py-2 text-sm rounded-xl transition-all font-medium ${
-                  p === pagination.page
-                    ? 'bg-brand-600 text-white shadow-sm shadow-brand-200'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        )}
+
       </div>
 
       {/* Create Modal */}
@@ -301,6 +267,17 @@ export default function DashboardPage() {
                   className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-all"
                   placeholder="Initial version (optional)"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Visibility</label>
+                <select
+                  value={createForm.visibility}
+                  onChange={(e) => setCreateForm({ ...createForm, visibility: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-all"
+                >
+                  <option value="private">Private</option>
+                  <option value="public">Public (Visible in Explore)</option>
+                </select>
               </div>
               <button
                 type="submit"

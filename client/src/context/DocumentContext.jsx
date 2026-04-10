@@ -4,21 +4,32 @@ import api from '../services/api';
 const DocumentContext = createContext(null);
 
 export function DocumentProvider({ children }) {
-  const [documents, setDocuments] = useState([]);
+  const [myDocuments, setMyDocuments] = useState([]);
+  const [publicDocuments, setPublicDocuments] = useState([]);
   const [currentDocument, setCurrentDocument] = useState(null);
   const [currentVersion, setCurrentVersion] = useState(null);
   const [versions, setVersions] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(false);
 
-  const fetchDocuments = useCallback(async (page = 1) => {
+  const fetchMyDocuments = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/documents?page=${page}&limit=20`);
-      setDocuments(res.data.documents);
-      setPagination(res.data.pagination);
+      const res = await api.get('/documents/my');
+      setMyDocuments(res.data);
     } catch (err) {
-      console.error('Failed to fetch documents:', err);
+      console.error('Failed to fetch my documents:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchPublicDocuments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/documents/public');
+      setPublicDocuments(res.data);
+    } catch (err) {
+      console.error('Failed to fetch public documents:', err);
     } finally {
       setLoading(false);
     }
@@ -62,8 +73,8 @@ export function DocumentProvider({ children }) {
   return (
     <DocumentContext.Provider
       value={{
-        documents, currentDocument, currentVersion, versions, pagination, loading,
-        fetchDocuments, fetchDocument, fetchVersions, selectVersion,
+        myDocuments, publicDocuments, currentDocument, currentVersion, versions, loading,
+        fetchMyDocuments, fetchPublicDocuments, fetchDocument, fetchVersions, selectVersion,
         setCurrentDocument, setCurrentVersion, setVersions,
       }}
     >

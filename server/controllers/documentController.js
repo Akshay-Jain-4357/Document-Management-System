@@ -12,7 +12,7 @@ const WordExtractor = require('word-extractor');
  */
 exports.createDocument = async (req, res, next) => {
   try {
-    const { title, content, message } = req.body;
+    const { title, content, message, visibility } = req.body;
 
     if (!content || content.trim().length === 0) {
       return res.status(400).json({ error: 'Cannot create a document with empty content' });
@@ -20,6 +20,7 @@ exports.createDocument = async (req, res, next) => {
 
     const doc = await Document.create({
       title,
+      visibility: visibility || 'private',
       createdBy: req.user._id,
       accessControl: {
         owner: req.user._id,
@@ -124,17 +125,15 @@ exports.uploadDocument = async (req, res, next) => {
 };
 
 /**
- * GET /api/documents — List documents accessible to the user
+ * GET /api/documents/my — List user's owned and shared documents
  */
-exports.listDocuments = async (req, res, next) => {
+exports.listMyDocuments = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = Math.min(parseInt(req.query.limit) || 20, 50);
-    const skip = (page - 1) * limit;
     const userId = req.user._id;
 
     const filter = {
       $or: [
+        { createdBy: userId },
         { 'accessControl.owner': userId },
         { 'accessControl.editors': userId },
         { 'accessControl.viewers': userId },
@@ -142,25 +141,122 @@ exports.listDocuments = async (req, res, next) => {
       ],
     };
 
-    const [documents, total] = await Promise.all([
-      Document.find(filter)
-        .populate('createdBy', 'username')
-        .populate('currentVersionId', 'versionNumber message author isApproved createdAt')
-        .sort({ updatedAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Document.countDocuments(filter),
-    ]);
+    const documents = await Document.find(filter)
+      .populate('createdBy', 'username')
+      .populate('accessControl.owner', 'username')
+      .populate('currentVersionId', 'versionNumber message author isApproved createdAt')
+      .populate('versions', 'author')
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    const formattedDocs = documents.map(doc => {
+      const uniqueAuthors = new Set();
+      if (doc.versions) {
+        doc.versions.forEach(v => {
+          if (v.author) uniqueAuthors.add(v.author.toString());
+        });
+      }
+
+      return {
+        id: doc._id,
+        _id: doc._id,
+        title: doc.title,
+        owner: doc.accessControl?.owner?.username || doc.createdBy?.username || 'Unknown',
+        updatedAt: doc.updatedAt,
+        accessStats: {
+          editors: doc.accessControl?.editors?.length || 0,
+          viewers: doc.accessControl?.viewers?.length || 0,
+          approvers: doc.accessControl?.approvers?.length || 0,
+        },
+        contributorsCount: uniqueAuthors.size,
+        currentVersionId: doc.currentVersionId,
+        createdBy: doc.createdBy,
+        versions: doc.versions
+      };
+    });
+
+    res.json(formattedDocs);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/documents/public — List public documents
+ */
+exports.listPublicDocuments = async (req, res, next) => {
+  try {
+    const documents = await Document.find({ visibility: 'public' })
+      .populate('createdBy', 'username')
+      .populate('accessControl.owner', 'username')
+      .populate('currentVersionId', 'versionNumber message author isApproved createdAt')
+      .populate('versions', 'author')
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    const formattedDocs = documents.map(doc => {
+      const uniqueAuthors = new Set();
+      if (doc.versions) {
+        doc.versions.forEach(v => {
+          if (v.author) uniqueAuthors.add(v.author.toString());
+        });
+      }
+
+      return {
+        id: doc._id,
+        _id: doc._id,
+        title: doc.title,
+        owner: doc.accessControl?.owner?.username || doc.createdBy?.username || 'Unknown',
+        updatedAt: doc.updatedAt,
+        visibility: 'public',
+        contributorsCount: uniqueAuthors.size,
+        currentVersionId: doc.currentVersionId,
+        createdBy: doc.createdBy,
+        versions: doc.versions
+      };
+    });
+
+    res.json(formattedDocs);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/documents/:id/insights — Expose document collaboration signals
+ */
+exports.getDocumentInsights = async (req, res, next) => {
+  try {
+    const doc = await Document.findById(req.params.id).populate('versions', 'author').lean();
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+    
+    // Basic access check: public docs or user has role
+    const userId = req.user._id.toString();
+    const isPublic = doc.visibility === 'public';
+    const hasRole = 
+      doc.createdBy?.toString() === userId ||
+      doc.accessControl?.owner?.toString() === userId ||
+      doc.accessControl?.editors?.some(id => id.toString() === userId) ||
+      doc.accessControl?.viewers?.some(id => id.toString() === userId) ||
+      doc.accessControl?.approvers?.some(id => id.toString() === userId);
+      
+    if (!isPublic && !hasRole) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const uniqueAuthors = new Set();
+    if (doc.versions) {
+      doc.versions.forEach(v => {
+        if (v.author) uniqueAuthors.add(v.author.toString());
+      });
+    }
 
     res.json({
-      documents,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
+      owner: 1,
+      editors: doc.accessControl?.editors?.length || 0,
+      viewers: doc.accessControl?.viewers?.length || 0,
+      approvers: doc.accessControl?.approvers?.length || 0,
+      contributors: uniqueAuthors.size
     });
   } catch (err) {
     next(err);

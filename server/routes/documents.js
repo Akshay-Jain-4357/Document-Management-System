@@ -14,10 +14,16 @@ router.post('/', validateCreateDocument, docController.createDocument);
 router.post('/upload', upload.single('file'), docController.uploadDocument);
 
 // List user's documents
-router.get('/', docController.listDocuments);
+router.get('/my', docController.listMyDocuments);
+
+// List public documents
+router.get('/public', docController.listPublicDocuments);
 
 // Get single document
 router.get('/:id', checkDocumentAccess('viewer'), docController.getDocument);
+
+// Get document insights
+router.get('/:id/insights', docController.getDocumentInsights);
 
 // Create new version
 router.post('/:id/version', checkDocumentAccess('editor'), validateCreateVersion, docController.createNewVersion);
