@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { GitBranch, LogOut, User, Bell, Search, Globe, Home } from 'lucide-react';
+import { GitBranch, LogOut, User, Search, Globe, Home } from 'lucide-react';
+import NotificationsMenu from './NotificationsMenu';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -43,11 +44,7 @@ export default function Navbar() {
 
           {user && (
             <div className="flex items-center gap-3">
-              {/* Notification bell placeholder */}
-              <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="Notifications">
-                <Bell className="h-[18px] w-[18px]" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full border-2 border-white"></span>
-              </button>
+              <NotificationsMenu />
 
               {/* Divider */}
               <div className="w-px h-7 bg-gray-200"></div>

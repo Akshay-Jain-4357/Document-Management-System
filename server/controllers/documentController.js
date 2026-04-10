@@ -1,6 +1,7 @@
 const Document = require('../models/Document');
 const Version = require('../models/Version');
 const AuditLog = require('../models/AuditLog');
+const AccessRequest = require('../models/AccessRequest');
 const { createInitialVersion, createVersion } = require('../services/versionService');
 const { logAction } = require('../services/auditService');
 const pdfParse = require('pdf-parse');
@@ -390,3 +391,107 @@ exports.getAuditLog = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * POST /api/documents/:id/request-access — User requests edit/viewer access
+ */
+exports.requestAccess = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { role = 'editor' } = req.body;
+    
+    const doc = await Document.findById(id);
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+    
+    const existing = await AccessRequest.findOne({ documentId: id, userId: req.user._id, status: 'pending' });
+    if (existing) {
+      return res.status(400).json({ error: 'Access request already pending' });
+    }
+    
+    const reqAcc = await AccessRequest.create({
+      documentId: id,
+      userId: req.user._id,
+      requestedRole: role
+    });
+    
+    res.status(201).json({ message: 'Request sent successfully', request: reqAcc });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/documents/access-requests/pending — Owner fetches requests for their owned documents
+ */
+exports.getPendingRequestsForOwner = async (req, res, next) => {
+  try {
+    const userDocs = await Document.find({ 'accessControl.owner': req.user._id }).select('_id');
+    const docIds = userDocs.map(d => d._id);
+    
+    const requests = await AccessRequest.find({
+      documentId: { $in: docIds },
+      status: 'pending'
+    })
+    .populate('userId', 'username email')
+    .populate('documentId', 'title')
+    .sort({ createdAt: -1 });
+    
+    res.json(requests);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /api/documents/access-requests/:requestId/approve — Owner approves requests
+ */
+exports.approveAccessRequest = async (req, res, next) => {
+  try {
+    const { requestId } = req.params;
+    const accessReq = await AccessRequest.findById(requestId).populate('documentId');
+    
+    if (!accessReq) return res.status(404).json({ error: 'Request not found' });
+    
+    const doc = accessReq.documentId;
+    if (doc.accessControl.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Only owner can approve requests' });
+    }
+    
+    accessReq.status = 'approved';
+    await accessReq.save();
+    
+    const roleKey = accessReq.requestedRole + 's';
+    if (!doc.accessControl[roleKey].includes(accessReq.userId)) {
+      doc.accessControl[roleKey].push(accessReq.userId);
+      await doc.save();
+      await logAction(doc._id, 'ACCESS_CHANGE', req.user._id, { [roleKey]: doc.accessControl[roleKey] });
+    }
+    
+    res.json({ message: 'Request approved successfully', document: doc });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /api/documents/access-requests/:requestId/reject — Owner rejects requests
+ */
+exports.rejectAccessRequest = async (req, res, next) => {
+  try {
+    const { requestId } = req.params;
+    const accessReq = await AccessRequest.findById(requestId).populate('documentId');
+    if (!accessReq) return res.status(404).json({ error: 'Request not found' });
+    
+    if (accessReq.documentId.accessControl.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Only owner can reject requests' });
+    }
+    
+    accessReq.status = 'rejected';
+    await accessReq.save();
+    
+    res.json({ message: 'Request rejected' });
+  } catch (err) {
+    next(err);
+  }
+};
+

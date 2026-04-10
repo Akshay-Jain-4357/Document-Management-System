@@ -19,6 +19,19 @@ router.get('/my', docController.listMyDocuments);
 // List public documents
 router.get('/public', docController.listPublicDocuments);
 
+// Get pending access requests (owner only technically, but handled in controller)
+router.get('/access-requests/pending', docController.getPendingRequestsForOwner);
+
+// Approve access request
+router.post('/access-requests/:requestId/approve', docController.approveAccessRequest);
+
+// Reject access request
+router.post('/access-requests/:requestId/reject', docController.rejectAccessRequest);
+
+// Request access to document (viewer requests access)
+// Needs to come before :id routes if we use a specific prefix to avoid matching "access-requests" as an ID
+router.post('/:id/request-access', docController.requestAccess);
+
 // Get single document
 router.get('/:id', checkDocumentAccess('viewer'), docController.getDocument);
 

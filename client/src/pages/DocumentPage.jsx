@@ -39,6 +39,7 @@ export default function DocumentPage() {
   const [auditLogs, setAuditLogs] = useState([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
   const [insights, setInsights] = useState(null);
+  const [requestingAccess, setRequestingAccess] = useState(false);
 
   // Load document and versions, set initial displayed version to the latest
   const loadDocument = useCallback(async () => {
@@ -173,6 +174,18 @@ export default function DocumentPage() {
     }
   };
 
+  const handleRequestAccess = async () => {
+    setRequestingAccess(true);
+    try {
+      await api.post(`/documents/${id}/request-access`, { role: 'editor' });
+      toast.success('Access request sent successfully! Owner will be notified.');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to send request');
+    } finally {
+      setRequestingAccess(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'audit') loadAuditLog();
   }, [activeTab]);
@@ -302,6 +315,20 @@ export default function DocumentPage() {
 
             {/* Action Buttons — all operate on the DISPLAYED (selected) version */}
             <div className="flex items-center gap-2 flex-wrap">
+
+              {/* Request Access — for public viewers */}
+              {isPublicViewer && (
+                <button
+                  onClick={handleRequestAccess}
+                  disabled={requestingAccess}
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-all active:scale-[0.98] shadow-sm"
+                  title="Request Editor Access"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  {requestingAccess ? 'Requesting...' : 'Request Edit Access'}
+                </button>
+              )}
+
               {/* Compare — shown when 2 versions ticked */}
               {compareSelection.length === 2 && (
                 <button
