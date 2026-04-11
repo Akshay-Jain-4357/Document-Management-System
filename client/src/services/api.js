@@ -21,11 +21,13 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+      if (error.response?.status === 401) {
       localStorage.removeItem("officegit_token");
       localStorage.removeItem("officegit_user");
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      // Support for both HashRouter and BrowserRouter
+      const isLoginPath = window.location.pathname === "/login" || window.location.hash.includes("/login");
+      if (!isLoginPath) {
+        window.location.hash = "#/login"; // Use hash router redirect 
       }
     }
     return Promise.reject(error);

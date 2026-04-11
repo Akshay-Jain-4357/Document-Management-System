@@ -31,6 +31,9 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests with no origin (mobile apps, curl, Postman)
       if (!origin) return callback(null, true);
+      // Allow Chrome Extensions
+      if (origin.startsWith('chrome-extension://')) return callback(null, true);
+      
       if (allowedOrigins.some((o) => origin.startsWith(o))) {
         return callback(null, true);
       }

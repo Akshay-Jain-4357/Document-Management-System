@@ -10,10 +10,6 @@ chrome.runtime.onInstalled.addListener(async () => {
   console.log('OfficeGit extension installed.');
 });
 
-// Listen for messages from popup to update badge
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === 'UPDATE_BADGE') {
-    chrome.action.setBadgeText({ text: msg.count > 0 ? String(msg.count) : '' });
-    chrome.action.setBadgeBackgroundColor({ color: '#4f46e5' });
-  }
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
 });

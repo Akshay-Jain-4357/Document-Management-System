@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { DocumentProvider } from './context/DocumentContext';
@@ -11,7 +11,7 @@ import ExplorePage from './pages/ExplorePage';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AuthProvider>
         <DocumentProvider>
           <Toaster
@@ -66,6 +66,6 @@ export default function App() {
           </Routes>
         </DocumentProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
